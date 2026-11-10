@@ -99,18 +99,15 @@ def finish():
     hud_images = []
 
 
-item_opened_at = 0.0
-
-
 def pause():
-    global item_opened_at
-    item_opened_at = get_time()
-    boy.pressed_keys.clear()
-
-
-def resume():
-    boy.idle_started_at += get_time() - item_opened_at
+    # 아이템 모드에서는 이동만 멈추고 대기·수면 시간은 계속 흐른다.
     boy.pressed_keys.clear()
     boy.dir = 0
     if boy.state == 'RUN':
         boy.stop_run()
+
+
+def resume():
+    # 선택 화면에서 진행된 수면 상태와 시간을 그대로 유지한다.
+    boy.pressed_keys.clear()
+    boy.dir = 0

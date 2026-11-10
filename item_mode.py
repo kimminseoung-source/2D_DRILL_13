@@ -44,7 +44,8 @@ def handle_events():
 
 
 def update():
-    # 캐릭터는 멈추고 이미 발사된 공만 원래 방향으로 이동한다.
+    # 이동 입력은 막고 대기·수면 상태와 기존 공의 이동은 계속 갱신한다.
+    play_mode.boy.update()
     for layer in game_world.world:
         for obj in layer[:]:
             if isinstance(obj, Ball):

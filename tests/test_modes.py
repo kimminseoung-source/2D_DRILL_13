@@ -38,7 +38,7 @@ class ModeTests(unittest.TestCase):
             framework.stack.pop().finish()
         framework.running = False
 
-    def test_selection_freezes_boy_but_keeps_ball_moving(self):
+    def test_selection_stops_walking_but_updates_idle_and_balls(self):
         send(play_mode, p.SDLK_RIGHT)
         send(play_mode, p.SDLK_SPACE)
         boy = play_mode.boy
@@ -47,7 +47,9 @@ class ModeTests(unittest.TestCase):
         send(play_mode, p.SDLK_i)
         for _ in range(10):
             framework.stack[-1].update()
-        self.assertEqual(before[:2], (boy.x, boy.frame))
+        self.assertEqual(before[0], boy.x)
+        self.assertEqual(boy.state, 'IDLE')
+        self.assertEqual(boy.frame, 10 % 8)
         self.assertEqual(ball.x, before[2] + 10 * ball.velocity)
         item_mode.render()
         send(item_mode, p.SDLK_2)
@@ -55,13 +57,15 @@ class ModeTests(unittest.TestCase):
         self.assertIn(ball, game_world.world[1])
         self.assertEqual(item_state.selected, item_state.Item.LARGE)
 
-    def test_item_time_does_not_advance_sleep_timer(self):
+    def test_item_time_advances_sleep_timer_as_reference_video(self):
         play_mode.boy.idle_started_at = 5.0
-        with patch.object(play_mode, 'get_time', return_value=10.0):
-            send(play_mode, p.SDLK_i)
-        with patch.object(play_mode, 'get_time', return_value=30.0):
-            send(item_mode, p.SDLK_ESCAPE)
-        self.assertEqual(play_mode.boy.idle_started_at, 25.0)
+        send(play_mode, p.SDLK_i)
+        with patch('boy.get_time', return_value=10.1):
+            item_mode.update()
+        self.assertEqual(play_mode.boy.state, 'SLEEP')
+        send(item_mode, p.SDLK_ESCAPE)
+        self.assertEqual(play_mode.boy.idle_started_at, 5.0)
+        self.assertEqual(play_mode.boy.state, 'SLEEP')
 
     def test_resume_does_not_keep_moving_from_old_key(self):
         send(play_mode, p.SDLK_RIGHT)
@@ -182,6 +186,19 @@ class ModeTests(unittest.TestCase):
         self.assertNotIn(right, game_world.world[1])
         self.assertIn(survivor, game_world.world[1])
         self.assertEqual(survivor.x, 410)
+
+
+
+    def test_selecting_item_does_not_wake_sleeping_boy(self):
+        play_mode.boy.fall_asleep()
+        send(play_mode, p.SDLK_i)
+        item_mode.update()
+        send(item_mode, p.SDLK_2)
+        self.assertEqual(play_mode.boy.state, 'SLEEP')
+        before = len(game_world.world[1])
+        send(play_mode, p.SDLK_SPACE)
+        self.assertEqual(play_mode.boy.state, 'IDLE')
+        self.assertEqual(len(game_world.world[1]), before)
 
 
 if __name__ == '__main__':
