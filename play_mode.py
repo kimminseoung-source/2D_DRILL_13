@@ -2,6 +2,7 @@ from pathlib import Path
 from pico2d import *
 import game_framework
 import game_world
+import item_state
 from boy import Boy
 from grass import Grass
 
@@ -18,6 +19,7 @@ def init():
     pause_started_at = 0.0
     pause_image = load_image(str(Path(__file__).parent / 'pause_message.png'))
     game_world.clear()
+    item_state.reset()
     boy = Boy()
     game_world.add_oject(boy)
     grass = Grass()

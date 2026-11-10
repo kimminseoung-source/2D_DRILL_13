@@ -1,3 +1,4 @@
+import item_state
 from resources import asset
 from math import pi
 
@@ -48,7 +49,9 @@ class Boy:
         self.frame = 0
 
     def fire_ball(self):
-        ball = Ball(self.x, self.y, self.face_dir * 10)
+        if item_state.selected == item_state.Item.NONE:
+            return
+        ball = Ball(self.x, self.y, self.face_dir * 10, item_state.selected)
         game_world.add_oject(ball)
 
     def handle_event(self, event):
