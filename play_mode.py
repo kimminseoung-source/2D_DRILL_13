@@ -103,7 +103,12 @@ item_opened_at = 0.0
 def pause():
     global item_opened_at
     item_opened_at = get_time()
+    boy.pressed_keys.clear()
 
 
 def resume():
     boy.idle_started_at += get_time() - item_opened_at
+    boy.pressed_keys.clear()
+    boy.dir = 0
+    if boy.state == 'RUN':
+        boy.stop_run()
