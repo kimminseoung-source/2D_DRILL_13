@@ -1,3 +1,4 @@
+from resources import asset
 from pathlib import Path
 from pico2d import *
 import game_framework
@@ -10,14 +11,16 @@ boy = None
 paused = False
 pause_started_at = 0.0
 pause_image = None
+hud_images = []
 
 
 def init():
-    global boy, paused, pause_started_at, pause_image
+    global boy, paused, pause_started_at, pause_image, hud_images
 
     paused = False
     pause_started_at = 0.0
     pause_image = load_image(str(Path(__file__).parent / 'pause_message.png'))
+    hud_images = [load_image(asset(f'play_hud_{i}.png')) for i in range(3)]
     game_world.clear()
     item_state.reset()
     boy = Boy()
@@ -71,21 +74,27 @@ def update():
         game_world.update()
 
 
+def draw_scene():
+    game_world.render()
+    hud_images[item_state.selected.value].draw(get_canvas_width() // 2, get_canvas_height() - 28)
+
+
 def render():
     clear_canvas()
-    game_world.render()
+    draw_scene()
     if paused:
         pause_image.draw(get_canvas_width() // 2, get_canvas_height() // 2)
     update_canvas()
 
 
 def finish():
-    global boy, paused, pause_image
+    global boy, paused, pause_image, hud_images
 
     game_world.clear()
     boy = None
     paused = False
     pause_image = None
+    hud_images = []
 
 
 item_opened_at = 0.0
