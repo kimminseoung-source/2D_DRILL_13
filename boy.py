@@ -1,3 +1,4 @@
+from resources import asset
 from math import pi
 
 from pico2d import get_canvas_width, get_time, load_image
@@ -13,7 +14,7 @@ class Boy:
     def __init__(self):
         self.x, self.y = 400, 90
         self.frame = 0
-        self.image = load_image('animation_sheet.png')
+        self.image = load_image(asset('animation_sheet.png'))
         self.idle_started_at = get_time()
         self.dir = 0
         self.face_dir = 1
