@@ -44,6 +44,11 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_i:
+            if not getattr(event, 'repeat', False):
+                import item_mode
+                game_framework.push_mode(item_mode)
+                return
         elif event.type == SDL_KEYDOWN and event.key == SDLK_p:
             if not getattr(event, 'repeat', False):
                 toggle_pause()
@@ -81,3 +86,15 @@ def finish():
     boy = None
     paused = False
     pause_image = None
+
+
+item_opened_at = 0.0
+
+
+def pause():
+    global item_opened_at
+    item_opened_at = get_time()
+
+
+def resume():
+    boy.idle_started_at += get_time() - item_opened_at
