@@ -2,6 +2,8 @@ from pico2d import *
 import game_framework
 import play_mode
 import item_state
+import game_world
+from ball import Ball
 from resources import asset
 
 panel = None
@@ -42,7 +44,11 @@ def handle_events():
 
 
 def update():
-    pass
+    # 캐릭터는 멈추고 이미 발사된 공만 원래 방향으로 이동한다.
+    for layer in game_world.world:
+        for obj in layer[:]:
+            if isinstance(obj, Ball):
+                obj.update()
 
 
 def render():

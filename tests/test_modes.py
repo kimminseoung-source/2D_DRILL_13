@@ -38,7 +38,7 @@ class ModeTests(unittest.TestCase):
             framework.stack.pop().finish()
         framework.running = False
 
-    def test_selection_freezes_existing_boy_and_ball(self):
+    def test_selection_freezes_boy_but_keeps_ball_moving(self):
         send(play_mode, p.SDLK_RIGHT)
         send(play_mode, p.SDLK_SPACE)
         boy = play_mode.boy
@@ -47,7 +47,8 @@ class ModeTests(unittest.TestCase):
         send(play_mode, p.SDLK_i)
         for _ in range(10):
             framework.stack[-1].update()
-        self.assertEqual(before, (boy.x, boy.frame, ball.x))
+        self.assertEqual(before[:2], (boy.x, boy.frame))
+        self.assertEqual(ball.x, before[2] + 10 * ball.velocity)
         item_mode.render()
         send(item_mode, p.SDLK_2)
         self.assertIs(play_mode.boy, boy)
@@ -151,6 +152,36 @@ class ModeTests(unittest.TestCase):
     def test_window_close_from_play_mode(self):
         send(play_mode, 0, p.SDL_QUIT)
         self.assertFalse(framework.running)
+
+
+
+    def test_item_mode_moves_both_ball_sizes_in_their_directions(self):
+        from ball import Ball
+        small = Ball(300, 100, 10, item_state.Item.SMALL)
+        large = Ball(500, 100, -10, item_state.Item.LARGE)
+        game_world.add_oject(small)
+        game_world.add_oject(large)
+        send(play_mode, p.SDLK_i)
+        for _ in range(5):
+            item_mode.update()
+        self.assertEqual((small.x, large.x), (350, 450))
+        send(item_mode, p.SDLK_0)
+        play_mode.update()
+        self.assertEqual((small.x, large.x), (360, 440))
+
+    def test_item_mode_removes_balls_crossing_either_edge(self):
+        from ball import Ball
+        left = Ball(0, 100, -10)
+        right = Ball(p.get_canvas_width(), 100, 10, item_state.Item.LARGE)
+        survivor = Ball(400, 100, 10)
+        for ball in (left, right, survivor):
+            game_world.add_oject(ball)
+        send(play_mode, p.SDLK_i)
+        item_mode.update()
+        self.assertNotIn(left, game_world.world[1])
+        self.assertNotIn(right, game_world.world[1])
+        self.assertIn(survivor, game_world.world[1])
+        self.assertEqual(survivor.x, 410)
 
 
 if __name__ == '__main__':
