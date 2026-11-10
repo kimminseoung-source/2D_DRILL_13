@@ -45,10 +45,12 @@ def handle_events():
     for event in get_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
+            return
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
+            return
         elif event.type == SDL_KEYDOWN and event.key == SDLK_i:
-            if not getattr(event, 'repeat', False):
+            if not paused and not getattr(event, 'repeat', False):
                 import item_mode
                 game_framework.push_mode(item_mode)
                 return

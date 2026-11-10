@@ -76,5 +76,37 @@ class ModeTests(unittest.TestCase):
         self.assertLess(play_mode.boy.x, before)
 
 
+    def test_pause_blocks_item_mode_and_freezes_world(self):
+        send(play_mode, p.SDLK_RIGHT)
+        send(play_mode, p.SDLK_p)
+        before = (play_mode.boy.x, play_mode.boy.frame)
+        send(play_mode, p.SDLK_i)
+        self.assertEqual(framework.stack, [play_mode])
+        play_mode.update()
+        self.assertEqual(before, (play_mode.boy.x, play_mode.boy.frame))
+        send(play_mode, p.SDLK_p, repeat=True)
+        self.assertTrue(play_mode.paused)
+        send(play_mode, p.SDLK_RIGHT, p.SDL_KEYUP)
+        send(play_mode, p.SDLK_p)
+        self.assertFalse(play_mode.paused)
+        x = play_mode.boy.x
+        play_mode.update()
+        self.assertEqual(play_mode.boy.x, x)
+
+    def test_item_mode_ignores_pause_and_held_i(self):
+        send(play_mode, p.SDLK_i)
+        send(item_mode, p.SDLK_p)
+        send(item_mode, p.SDLK_i, repeat=True)
+        self.assertEqual(framework.stack, [play_mode, item_mode])
+        self.assertFalse(play_mode.paused)
+        send(item_mode, p.SDLK_i)
+        self.assertEqual(framework.stack, [play_mode])
+
+    def test_escape_exits_while_paused(self):
+        send(play_mode, p.SDLK_p)
+        send(play_mode, p.SDLK_ESCAPE)
+        self.assertFalse(framework.running)
+
+
 if __name__ == '__main__':
     unittest.main()
