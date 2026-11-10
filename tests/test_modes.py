@@ -108,5 +108,50 @@ class ModeTests(unittest.TestCase):
         self.assertFalse(framework.running)
 
 
+
+    def test_all_choices_control_firing_and_keep_existing_balls(self):
+        for key, value in ((p.SDLK_1, 1), (p.SDLK_2, 2), (p.SDLK_0, 0)):
+            send(play_mode, p.SDLK_i)
+            send(item_mode, key)
+            before = list(game_world.world[1])
+            send(play_mode, p.SDLK_SPACE)
+            if value == 0:
+                self.assertEqual(before, game_world.world[1])
+            else:
+                ball = game_world.world[1][-1]
+                self.assertEqual(ball.size, 21 if value == 1 else 41)
+                self.assertEqual(game_world.world[1][:-1], before)
+        self.assertEqual(len(game_world.world[1]), 3)
+
+    def test_keypad_and_cancel_preserve_selection(self):
+        for key, value in ((p.SDLK_KP_0, 0), (p.SDLK_KP_1, 1), (p.SDLK_KP_2, 2)):
+            send(play_mode, p.SDLK_i)
+            send(item_mode, key)
+            self.assertEqual(item_state.selected.value, value)
+        send(play_mode, p.SDLK_i)
+        send(item_mode, p.SDLK_ESCAPE)
+        self.assertEqual(item_state.selected.value, 2)
+
+    def test_facing_and_offscreen_cleanup(self):
+        from ball import Ball
+        item_state.select(2)
+        play_mode.boy.face_dir = -1
+        play_mode.boy.fire_ball()
+        ball = game_world.world[1][-1]
+        self.assertLess(ball.velocity, 0)
+        ball.x = 0
+        ball.update()
+        self.assertNotIn(ball, game_world.world[1])
+
+    def test_window_close_from_item_mode(self):
+        send(play_mode, p.SDLK_i)
+        send(item_mode, 0, p.SDL_QUIT)
+        self.assertFalse(framework.running)
+
+    def test_window_close_from_play_mode(self):
+        send(play_mode, 0, p.SDL_QUIT)
+        self.assertFalse(framework.running)
+
+
 if __name__ == '__main__':
     unittest.main()
